@@ -1,0 +1,39 @@
+[package]
+name = "wallsong"
+version = "0.1.0"
+description = "Wallsong: your desktop, on the beat"
+edition = "2021"
+
+[lib]
+name = "wallsong_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "native-tls"] }
+urlencoding = "2"
+base64 = "0.22"
+log = "0.4"
+
+[target.'cfg(windows)'.dependencies]
+cpal = "0.15"
+windows = { version = "0.61", features = [
+  "Foundation",
+  "Foundation_Collections",
+  "Media_Control",
+  "Storage_Streams",
+  "Win32_Foundation",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_System_WinRT",
+] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

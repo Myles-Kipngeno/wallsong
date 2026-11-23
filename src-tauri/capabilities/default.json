@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Wallpaper window: listen to native events, call Wallsong commands",
+  "windows": ["wallpaper"],
+  "permissions": ["core:default", "core:event:default"]
+}
