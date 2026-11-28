@@ -1,0 +1,322 @@
+/* Tape, Cascade and Slam lyric styles (motionStyles.tsx).
+   Motion is transform / opacity only, so it runs on the compositor; blur is
+   used briefly on entry and never animates on the giant Slam words. */
+
+/* No new word for a while (an instrumental break): the words on screen dim. */
+@keyframes ly-idle { to { opacity: 0.35; } }
+
+/* ---------- Tape ---------- */
+
+.ly-tape {
+  --tape-red: #ff3b1d;
+  --tape-gold: #ffd043;
+  --tape-cream: #fce694;
+  --tape-strip: #f6b94d;
+  --tape-pill: #f79d42;
+}
+
+.tape-group {
+  position: absolute;
+  left: 50%;
+  top: 52vh;
+  transform: translate(-50%, -50%);
+}
+.tape-group.cur { animation: ly-idle 900ms ease 4s forwards; }
+.tape-group.out { animation: tape-out 200ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+
+.tape-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4vh;
+}
+
+.tape-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22em;
+}
+
+.tape-w {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  font-family: Nunito, var(--ly-font), sans-serif;
+  font-weight: 900;
+  line-height: 0.98;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+  color: var(--tw);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  transition: scale 180ms ease-out, text-shadow 180ms ease-out;
+  animation: tape-in 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.tape-w.sm {
+  font-weight: 800;
+  letter-spacing: 0;
+  font-size: min(calc(5.4vh * var(--ly-size, 1)), calc(66vw / var(--w)));
+}
+.tape-w.md { font-size: min(calc(10vh * var(--ly-size, 1)), calc(82vw / var(--w))); }
+.tape-w.xl {
+  letter-spacing: -0.03em;
+  font-size: min(calc(17vh * var(--ly-size, 1)), calc(88vw / var(--w)));
+}
+
+.tape-w.red { --tw: var(--tape-red); }
+.tape-w.gold { --tw: var(--tape-gold); }
+.tape-w.cream { --tw: var(--tape-cream); }
+
+/* The word being sung: a touch bigger, with a soft warm glow. */
+.tape-w.on {
+  scale: 1.05;
+  text-shadow: 0 0 18px rgba(255, 200, 60, 0.55), 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* A strip of tape behind the hero word, wiping on just after the word lands. */
+.tape-w.taped::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0.14em -0.16em 0.04em;
+  border-radius: 0.04em;
+  background: var(--tape-strip);
+  opacity: 0.88;
+  transform: rotate(var(--tilt));
+  animation: tape-strip 260ms ease-out 80ms both;
+}
+.tape-w.taped { text-shadow: none; }
+
+/* A small word in a solid pill, sharing a row with the next word. */
+.tape-w.pill {
+  padding: 0.04em 0.24em 0.08em;
+  border-radius: 0.14em;
+  background: var(--tape-pill);
+  color: #fff7e6;
+  text-shadow: none;
+}
+
+@keyframes tape-in {
+  0% { opacity: 0; transform: translateY(1.2vh) scale(0.85); filter: blur(4px); }
+  70% { opacity: 1; transform: translateY(0) scale(1.03); filter: blur(0); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes tape-strip {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes tape-out {
+  to { opacity: 0; transform: translate(-50%, -50%) scale(0.94); filter: blur(5px); }
+}
+
+/* ---------- Cascade ---------- */
+
+.ly-cascade {
+  --cas-red: #ff3314;
+  --cas-cream: #fce7a2;
+  --cas-row: calc(8.6vh * var(--ly-size, 1));
+}
+
+/* The column's bottom row (the newest word) sits here; older rows stack above. */
+.cas-col {
+  position: absolute;
+  left: 38vw;
+  top: 62vh;
+}
+
+.cas-w {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  white-space: nowrap;
+  font-family: Inter, var(--ly-font), sans-serif;
+  font-weight: 700;
+  font-size: min(calc(6.4vh * var(--fs) * var(--ly-size, 1)), calc(48vw / var(--w)));
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--cas-cream);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  transform-origin: 0 50%;
+  transform: translate(var(--x), calc(var(--k) * -1 * var(--cas-row))) rotate(var(--r)) scale(var(--sc));
+  opacity: var(--op);
+  transition:
+    transform 280ms cubic-bezier(0.34, 1.3, 0.64, 1),
+    opacity 280ms ease,
+    color 220ms ease;
+}
+.cas-w.new {
+  color: var(--cas-red);
+  animation: cas-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards, ly-idle 900ms ease 4s forwards;
+}
+
+/* Highlight boxes: pale yellow with red letters, or red with cream letters. */
+.ly-cascade .cas-w.box-a .cas-t,
+.ly-cascade .cas-w.box-b .cas-t {
+  padding: 0.06em 0.24em 0.1em;
+  border-radius: 0.1em;
+  text-shadow: none;
+}
+.ly-cascade .cas-w.box-a .cas-t { background: #fde68a; color: #c81e0f; }
+.ly-cascade .cas-w.box-b .cas-t { background: #ff3b1d; color: #fff1c1; }
+
+.cas-emoji {
+  font-style: normal;
+  font-size: 0.92em;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  text-shadow: none;
+  animation: cas-emoji 520ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes cas-pop {
+  from {
+    opacity: 0;
+    transform: translate(var(--x), 1.8vh) rotate(var(--r)) scale(0.75);
+  }
+}
+@keyframes cas-emoji {
+  0% { transform: scale(0) rotate(-25deg); }
+  60% { transform: scale(1.15) translateY(-0.08em); }
+  100% { transform: none; }
+}
+
+/* Chorus lines: a tilted ALL-CAPS poster block, the hero word trailing echoes. */
+.poster {
+  position: absolute;
+  left: 50%;
+  top: 52vh;
+  transform: translate(-50%, -50%) rotate(var(--tilt));
+  animation: ly-idle 900ms ease 4s forwards;
+}
+.poster-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pw {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  font-family: Anton, "Bebas Neue", var(--ly-font), sans-serif;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--cas-cream);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+  font-size: min(calc(19vh * var(--ly-size, 1)), calc(72vw / (var(--w) * 0.68)));
+  animation: pw-slam 170ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.pw.sm { font-size: min(calc(8vh * var(--ly-size, 1)), calc(44vw / (var(--w) * 0.68))); }
+.pw.hero,
+.pw.on { color: var(--cas-red); }
+
+.pw-echo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: rgba(235, 110, 110, calc(0.5 - var(--e) * 0.09));
+  text-shadow: none;
+  transform: translateY(calc(var(--e) * -0.085em));
+  animation: pw-echo 280ms ease-out both;
+  animation-delay: calc(var(--e) * 30ms);
+}
+
+@keyframes pw-slam {
+  from { opacity: 0; transform: scale(1.22) rotate(-3deg); }
+  60% { opacity: 1; }
+}
+@keyframes pw-echo {
+  from { opacity: 0; transform: translateY(0); }
+}
+
+/* ---------- Slam ---------- */
+
+.ly-slam { overflow: hidden; }
+
+/* A wash of the word's colour behind it, breathing a little with the bass. */
+.slam-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 55% 50% at 50% 50%, color-mix(in srgb, var(--c) 40%, transparent), transparent 72%);
+  opacity: calc(0.55 + var(--level, 0) * 0.45);
+  will-change: opacity;
+  animation: slam-glow 320ms ease-out both;
+}
+
+.slam-word {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  margin: 0;
+  white-space: nowrap;
+  font-family: "Archivo Black", var(--ly-font), sans-serif;
+  font-size: min(calc(48vh * var(--ly-size, 1)), 62vh, calc(86vw / var(--w)));
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--c);
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.slam-word.boxed {
+  padding: 0 0.12em 0.04em;
+  border-radius: 0.06em;
+  background: var(--bx);
+}
+
+.slam-word.punch { animation: slam-punch 200ms cubic-bezier(0.16, 1, 0.3, 1) both, ly-idle 900ms ease 4s forwards; }
+.slam-word.grow { animation: slam-grow 220ms cubic-bezier(0.16, 1, 0.3, 1) both, ly-idle 900ms ease 4s forwards; }
+.slam-word.streak { animation: slam-streak 240ms cubic-bezier(0.16, 1, 0.3, 1) both, ly-idle 900ms ease 4s forwards; }
+.slam-word.tumble { animation: ly-idle 900ms ease 4s forwards; }
+/* The word before: shrinks away upwards, dimming, behind the new one. */
+.slam-word.out { animation: slam-out 280ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+.slam-l {
+  display: inline-block;
+  animation: slam-tumble 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d);
+}
+
+/* A tapered swoosh drawn under some long words. */
+.slam-swoosh {
+  position: absolute;
+  left: 8%;
+  width: 84%;
+  top: 94%;
+  height: 0.18em;
+  overflow: visible;
+  fill: #f5f3ec;
+  animation: slam-swoosh 320ms ease-out 140ms both;
+}
+
+@keyframes slam-glow { from { opacity: 0; } }
+@keyframes slam-punch {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
+}
+@keyframes slam-grow {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+}
+@keyframes slam-streak {
+  from { opacity: 0; transform: translate(-50%, calc(-50% - 10vh)) scaleY(1.5); filter: blur(10px); }
+  60% { filter: blur(2px); }
+  to { filter: none; }
+}
+@keyframes slam-tumble {
+  from { opacity: 0; transform: perspective(600px) rotateX(var(--rx)) rotateY(var(--ry)); }
+}
+@keyframes slam-out {
+  to { opacity: 0; transform: translate(-50%, calc(-50% - 30vh)) scale(0.22); }
+}
+@keyframes slam-swoosh {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cas-w,
+  .tape-w { transition-duration: 1ms !important; }
+}
+

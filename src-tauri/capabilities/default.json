@@ -1,7 +1,16 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Wallpaper window: listen to native events, call Wallsong commands",
-  "windows": ["wallpaper"],
-  "permissions": ["core:default", "core:event:default"]
+  "description": "Wallpaper, mirror, overlay and mini player windows: talk to each other through events, call Wallsong commands; the mini player drags itself",
+  "windows": [
+    "wallpaper",
+    "overlay",
+    "wall-*",
+    "mini"
+  ],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:window:allow-start-dragging"
+  ]
 }

@@ -1,0 +1,122 @@
+/* Orbit lyric style (OrbitStyle.tsx): 3D spherical globe scroll, Z-axis word tumbles,
+   and fast Y-axis spinning orb transitions. */
+
+.ly-orbit {
+  overflow: hidden;
+}
+
+/* Soft centered spotlight wash behind the sphere/words, shifting hue per section. */
+.orbit-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease;
+}
+.orbit-glow.crimson {
+  background: radial-gradient(ellipse 58% 54% at 50% 52%, rgba(192, 34, 22, 0.34), rgba(110, 14, 12, 0.14) 48%, transparent 74%);
+}
+.orbit-glow.amber {
+  background: radial-gradient(ellipse 58% 54% at 50% 52%, rgba(235, 118, 28, 0.34), rgba(130, 55, 10, 0.14) 48%, transparent 74%);
+}
+.orbit-glow.slate {
+  background: radial-gradient(ellipse 58% 54% at 50% 52%, rgba(72, 118, 172, 0.36), rgba(34, 52, 82, 0.15) 48%, transparent 74%);
+}
+.orbit-glow.charcoal {
+  background: radial-gradient(ellipse 58% 54% at 50% 52%, rgba(92, 78, 72, 0.26), transparent 72%);
+}
+
+.orbit-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transition: opacity 180ms ease-out;
+}
+.orbit-canvas.dimmed { opacity: 0; }
+
+/* ---------- Tumble clusters (counter-clockwise Z-roll & -86deg drop) ---------- */
+
+.orbit-tumble {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.orbit-tumble.cur { animation: orbit-idle 900ms ease 4s forwards; }
+
+.orbit-tw {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  white-space: nowrap;
+  font-family: "Archivo Black", var(--ly-font), sans-serif;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  color: var(--oc);
+  transform-origin: 50% 50%;
+  transform: translate(-50%, calc(-50% + var(--oy))) rotate(var(--rz)) scale(var(--sc));
+  opacity: var(--op);
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 260ms ease-out,
+    color 240ms ease;
+  animation: orbit-tpop 210ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.orbit-tw.hero {
+  font-size: min(calc(18vh * var(--ly-size, 1)), 24vh, calc(82vw / var(--w)));
+}
+.orbit-tw.med {
+  font-size: min(calc(12.5vh * var(--ly-size, 1)), 17vh, calc(76vw / var(--w)));
+}
+.orbit-tw.italic {
+  font-style: italic;
+}
+.orbit-tw.pill {
+  padding: 0.04em 0.24em 0.08em;
+  border-radius: 0.14em;
+  background: var(--obg);
+  color: #f5f3ec;
+}
+
+/* Fallback 2D stack if WebGL context is unavailable */
+.orbit-fallback {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5vh;
+  text-align: center;
+}
+.orbit-fb-w {
+  font-family: "Archivo Black", var(--ly-font), sans-serif;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--oc);
+  font-size: min(calc(12vh * var(--ly-size, 1)), calc(82vw / var(--w)));
+  animation: orbit-tpop 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.orbit-fb-w.on {
+  font-size: min(calc(17vh * var(--ly-size, 1)), calc(86vw / var(--w)));
+}
+
+@keyframes orbit-tpop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + var(--oy) + 2vh)) rotate(calc(var(--rz) - 8deg)) scale(calc(var(--sc) * 1.18));
+  }
+}
+@keyframes orbit-idle {
+  to { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-tw,
+  .orbit-canvas { transition-duration: 1ms !important; }
+}

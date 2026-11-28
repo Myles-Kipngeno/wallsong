@@ -42,12 +42,9 @@ html, body, #root {
   width: 120%;
   height: 120%;
   object-fit: cover;
-  /* Blur, saturation and darkening are baked into a tiny canvas by Backdrop.tsx;
-     a live CSS blur here was re-run on the GPU every time anything repainted.
-     Static on purpose: a never-ending drift animation made the browser build
-     60 frames a second (~4.5% CPU). The week 2 video replaces this anyway. */
+  filter: blur(60px) saturate(1.35) brightness(0.5);
   transform: scale(1.15);
-  animation: fade-in 1.2s ease-out;
+  animation: drift 40s ease-in-out infinite alternate, fade-in 1.2s ease-out;
 }
 
 .backdrop-shade {
@@ -58,14 +55,55 @@ html, body, #root {
     linear-gradient(180deg, rgba(0, 0, 0, 0.25), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.45));
 }
 
+/* ---------- Music video (Wallsong's own player) ---------- */
+
+.video-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 900ms ease;
+  pointer-events: none;
+}
+.video-layer.on { opacity: 1; }
+
+/* The YouTube iframe, sized like object-fit: cover for 16:9, then pushed further
+   (20%) so YouTube's edges, title bar, branding and bottom pill fall off the screen. */
+.video-host,
+.video-host iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100vw, 177.78vh);
+  height: max(100vh, 56.25vw);
+  transform: translate(-50%, -50%) scale(1.2);
+  border: 0;
+  pointer-events: none;
+}
+.video-host iframe { transform: none; top: 0; left: 0; width: 100%; height: 100%; }
+
+.video-shade {
+  position: absolute;
+  inset: 0;
+  opacity: calc(0.4 + var(--video-dim, 0.3) * 2);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.15) 35%, rgba(0, 0, 0, 0.25) 60%, rgba(0, 0, 0, 0.6)),
+    radial-gradient(ellipse at 50% 55%, rgba(0, 0, 0, 0.25), transparent 70%);
+}
+
+@keyframes drift {
+  from { transform: scale(1.15) translate(-2%, -1%) rotate(-1deg); }
+  to   { transform: scale(1.25) translate(2%, 1.5%) rotate(1deg); }
+}
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* ---------- Clock ---------- */
+/* Tall and narrow: about 24% of the screen height, about 10% of its width. */
 
 .clock {
   position: absolute;
-  top: 3.5vh;
+  top: 7vh;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -75,24 +113,48 @@ html, body, #root {
 }
 
 .clock-date {
-  font-size: clamp(11px, 1.5vh, 18px);
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  margin-bottom: 0.4vh;
+  font-family: Inter, sans-serif;
+  font-size: clamp(10px, 1.15vh, 15px);
+  font-weight: 500;
   color: var(--ink-soft);
 }
 
 .clock-time {
-  font-family: Anton, Impact, sans-serif;
-  font-size: clamp(120px, 26vh, 340px);
-  line-height: 0.92;
-  letter-spacing: 0.01em;
-  color: color-mix(in srgb, var(--c1) 55%, white);
-  opacity: 0.88;
-  /* Fixed size on purpose: a shadow that grows with the bass is redrawn on the CPU every frame. */
-  text-shadow: 0 0 30px color-mix(in srgb, var(--c1) 60%, transparent);
+  font-family: var(--clock-font);
+  font-weight: var(--clock-weight);
+  font-size: calc(30vh * var(--clock-size, 1));
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--c1) 85%, white);
+  opacity: 0.66;
+  transform: scaleX(0.72);
+  text-shadow: 0 0 calc(6px + var(--level) * 16px) color-mix(in srgb, var(--c1) 45%, transparent);
   transition: color 1.2s ease;
 }
+/* Faces that are already narrow need less squeezing. */
+.clock-antonio .clock-time { transform: scaleX(0.5); }
+.clock-shoulders .clock-time { transform: scaleX(0.7); }
+.clock-playfair .clock-time { transform: scaleX(0.68); font-size: calc(26vh * var(--clock-size, 1)); }
+.clock-anton .clock-time { transform: scaleX(0.6); }
+.clock-colon { margin: 0 -0.02em; }
+
+/* Compact (pairs with Roll): about a tenth of the screen tall, light and not
+   squeezed, white at 75%, the date in a small line just above. */
+.clock-compact { top: 9vh; }
+.clock-compact .clock-date { margin-bottom: 1.3vh; }
+.clock-compact .clock-time {
+  font-family: Inter, sans-serif;
+  font-weight: 300;
+  font-size: calc(10vh * var(--clock-size, 1));
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.75);
+  opacity: 1;
+  transform: none;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+}
+.clock-compact .clock-colon { margin: 0 0.02em; }
 
 /* ---------- Lyrics ---------- */
 
@@ -126,11 +188,9 @@ html, body, #root {
   text-transform: uppercase;
   color: var(--ink);
   text-shadow:
-    0 0 28px color-mix(in srgb, var(--c1) 75%, transparent),
+    0 0 calc(12px + var(--level) * 34px) color-mix(in srgb, var(--c1) 75%, transparent),
     0 2px 18px rgba(0, 0, 0, 0.55);
-  /* The kick bump is a transform on its own layer, so the GPU scales it without a redraw. */
   transform: scale(calc(1 + var(--flash) * 0.035));
-  will-change: transform;
   animation: rise 420ms cubic-bezier(0.2, 0.9, 0.25, 1.15);
 }
 
@@ -167,18 +227,17 @@ html, body, #root {
 
 .now-playing {
   position: absolute;
-  bottom: 9vh;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 4vh;
+  left: 3vw;
   display: flex;
   align-items: center;
   gap: 14px;
-  max-width: min(560px, 80vw);
+  max-width: min(420px, 30vw);
   padding: 10px 24px 10px 10px;
   border-radius: 999px;
-  /* Solid tint, not frosted glass: backdrop-filter re-blurs whenever anything behind it moves. */
-  background: rgba(18, 18, 26, 0.78);
+  background: rgba(18, 18, 26, 0.42);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px) saturate(1.4);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
 }
 
@@ -212,8 +271,6 @@ html, body, #root {
 .np-artist { font-size: 13px; color: var(--ink-soft); }
 
 /* ---------- Edge glow ---------- */
-/* EdgeGlow.tsx pre-renders both frames (shape, colours, blur) into canvases.
-   Only their opacity follows the beat, which the GPU applies without redrawing. */
 
 .glow {
   position: absolute;
@@ -221,22 +278,38 @@ html, body, #root {
   pointer-events: none;
 }
 
-.glow canvas {
+.glow-blur {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  will-change: opacity;
 }
 
-.glow-core { opacity: calc(0.6 + var(--level) * 0.4); }
-.glow-soft { opacity: calc(0.35 + var(--level) * 0.45 + var(--flash) * 0.2); }
+.glow-frame {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from var(--angle), var(--c1), var(--c2), var(--c3), var(--c1));
+  /* Keep only a frame: full box minus the padded content box. */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+.glow-core {
+  filter: blur(4px);
+  opacity: calc(0.6 + var(--level) * 0.4);
+}
+.glow-core .glow-frame { padding: calc(4px + var(--level) * 6px); }
+
+.glow-soft {
+  filter: blur(36px);
+  opacity: calc(0.35 + var(--level) * 0.45 + var(--flash) * 0.2);
+}
+.glow-soft .glow-frame { padding: calc(22px + var(--level) * 40px + var(--flash) * 22px); }
 
 /* ---------- Status ---------- */
 
 .status {
   position: absolute;
-  top: 12px;
+  bottom: 12px;
   left: 16px;
   margin: 0;
   font-size: 12px;
@@ -244,5 +317,15 @@ html, body, #root {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .backdrop-art, .lyrics-current, .lyrics-prev { animation: none; }
+  .backdrop-art { animation: none; }
+}
+
+/* ---------- GPU glow ---------- */
+
+.glow-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }

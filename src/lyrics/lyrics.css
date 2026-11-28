@@ -1,0 +1,600 @@
+/* Lyric styles. Set on .lyrics-stage by the wallpaper:
+   --ly-font --ly-weight   chosen lyric font
+   --ly-size               text size multiplier (Settings > Lyrics)
+   --ly-text --ly-hi --ly-sec   text, highlight and secondary colours */
+
+.lyrics-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--ly-text, #fff);
+}
+
+.ly { position: absolute; inset: 0; }
+
+/* ---------- Stack ---------- */
+
+.ly-stack {
+  top: 41vh;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  width: min(34vw, 900px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35vh;
+}
+
+.ly-prev {
+  margin: 0;
+  font-family: var(--ly-font);
+  font-weight: var(--ly-weight);
+  font-size: calc(3vh * var(--ly-size, 1));
+  line-height: 1.15;
+  color: var(--ly-sec);
+  opacity: 0.45;
+  filter: blur(0.8px);
+  transition: opacity 400ms;
+}
+.ly-prev:first-child:not(:last-of-type) { opacity: 0.3; }
+
+.ly-current {
+  margin: 4vh 0 0;
+  font-family: var(--ly-font);
+  font-weight: var(--ly-weight);
+  font-size: calc(5.2vh * var(--ly-size, 1));
+  line-height: 1.12;
+  min-height: 1.12em;
+  text-shadow:
+    0 0 calc(10px + var(--level) * 22px) color-mix(in srgb, var(--ly-hi) 55%, transparent),
+    0 2px 14px rgba(0, 0, 0, 0.55);
+}
+
+.ly-word {
+  display: inline-block;
+  white-space: pre;
+  animation: word-in 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes word-in {
+  0% { opacity: 0; transform: translateX(0.55em); filter: blur(7px); color: var(--ly-hi); }
+  55% { opacity: 1; filter: blur(1px); }
+  100% { opacity: 1; transform: none; filter: blur(0); color: inherit; }
+}
+
+.ly-note { opacity: 0.7; }
+
+/* ---------- Drop ---------- */
+
+.ly-drop {
+  top: 38vh;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.86;
+}
+
+.ly-drop-word {
+  font-family: "Barlow Condensed", var(--ly-font);
+  font-weight: 800;
+  text-transform: lowercase;
+  font-size: calc(7vh * var(--s) * var(--ly-size, 1));
+  letter-spacing: -0.01em;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 0 calc(14px + var(--level) * 24px) color-mix(in srgb, var(--ly-hi) 50%, transparent);
+  animation: drop-in 420ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+@keyframes drop-in {
+  from { transform: translateY(-40vh) rotate(-6deg); opacity: 0; }
+  60% { opacity: 1; }
+  to { transform: none; opacity: 1; }
+}
+
+/* ---------- Scrawl ---------- */
+
+.ly-scrawl-line {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  margin: 0;
+  max-width: 40vw;
+  transform: rotate(var(--rot));
+  font-family: "Permanent Marker", var(--ly-font);
+  font-size: calc(5.4vh * var(--ly-size, 1));
+  line-height: 1.05;
+  color: var(--ly-text);
+  text-shadow: 2px 3px 0 color-mix(in srgb, var(--ly-hi) 70%, black);
+  transition: opacity 900ms;
+}
+
+.ly-scrawl-word {
+  display: inline-block;
+  white-space: pre;
+  animation: scrawl-in 420ms steps(6, end) both;
+}
+
+@keyframes scrawl-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* ---------- Sweep ---------- */
+
+.ly-sweep {
+  top: 40vh;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ly-sweep-word {
+  margin: 0;
+  font-family: Anton, var(--ly-font);
+  font-size: calc(19vh * var(--ly-size, 1));
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--ly-text);
+  background: linear-gradient(90deg, var(--ly-hi), var(--ly-text) 60%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 calc(8px + var(--level) * 22px) color-mix(in srgb, var(--ly-hi) 60%, transparent));
+  animation: sweep-in 320ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes sweep-in {
+  from { clip-path: inset(0 100% 0 0); transform: translateX(-4vw) skewX(-12deg); }
+  to { clip-path: inset(0 0 0 0); transform: none; }
+}
+
+.ly-sweep-line {
+  margin: 1vh 0 0;
+  max-width: 50vw;
+  text-align: center;
+  font-family: var(--ly-font);
+  font-weight: var(--ly-weight);
+  font-size: calc(2vh * var(--ly-size, 1));
+  color: var(--ly-sec);
+  opacity: 0.7;
+}
+
+/* ---------- Tube ---------- */
+
+.ly-tube {
+  top: 38vh;
+  bottom: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.ly-tube-screen {
+  position: relative;
+  padding: 2vh 3vw;
+  border-radius: 2.2vh;
+  background: radial-gradient(ellipse at center, rgba(10, 10, 14, 0.25), rgba(0, 0, 0, 0.55));
+  overflow: hidden;
+}
+.ly-tube-screen::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0 0 0;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0 2px, transparent 2px 4px);
+  mix-blend-mode: multiply;
+  animation: tube-roll 0.35s linear infinite;
+}
+
+@keyframes tube-roll { to { transform: translateY(4px); } }
+
+.ly-tube-text {
+  margin: 0;
+  max-width: 48vw;
+  font-family: VT323, monospace;
+  font-size: calc(7.5vh * var(--ly-size, 1));
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--ly-hi);
+  text-shadow:
+    -0.06em 0 rgba(255, 40, 90, 0.6),
+    0.06em 0 rgba(40, 200, 255, 0.6),
+    0 0 calc(12px + var(--level) * 28px) var(--ly-hi);
+  animation: tube-flicker 2.4s infinite steps(1);
+}
+
+@keyframes tube-flicker {
+  0%, 100% { opacity: 1; }
+  47% { opacity: 0.86; }
+  48% { opacity: 1; }
+  82% { opacity: 0.92; }
+}
+
+.ly-tube-cursor { animation: blink 0.9s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- Lens ---------- */
+
+.ly-lens {
+  top: 42vh;
+  bottom: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.ly-lens-word {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  font-family: "Archivo Black", var(--ly-font);
+  font-size: calc(9vh * var(--ly-size, 1));
+  text-transform: lowercase;
+  color: var(--ly-text);
+  text-shadow: 0 0 calc(10px + var(--level) * 20px) color-mix(in srgb, var(--ly-hi) 60%, transparent);
+  animation: lens-in 360ms ease-out both;
+}
+
+.ly-lens-word span {
+  display: inline-block;
+  transform: scale(var(--b), calc(var(--b) * 1.08)) skewX(var(--sk));
+  margin: 0 calc((var(--b) - 1) * 0.28em);
+}
+
+@keyframes lens-in {
+  from { transform: scale(0.4); filter: blur(10px); opacity: 0; }
+  to { transform: none; filter: none; opacity: 1; }
+}
+
+/* ---------- Stretch ---------- */
+
+.ly-stretch {
+  top: 41vh;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ly-stretch-word {
+  margin: 0;
+  font-family: Anton, var(--ly-font);
+  font-size: calc(10vh * var(--ly-size, 1));
+  line-height: 1.6;
+  text-transform: uppercase;
+  color: var(--ly-text);
+}
+
+.ly-stretch-word span {
+  display: inline-block;
+  transform-origin: 50% 70%;
+  color: transparent;
+  -webkit-text-stroke: 0;
+  background: linear-gradient(180deg, var(--ly-text), var(--ly-hi));
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 calc(6px + var(--level) * 18px) var(--ly-hi));
+  animation: stretch-in 600ms cubic-bezier(0.2, 0.9, 0.2, 1) both, stretch-wobble 2.6s ease-in-out infinite alternate;
+  animation-delay: 0ms, var(--d);
+}
+
+@keyframes stretch-in {
+  from { transform: scaleY(0.2) scaleX(1.6); opacity: 0; }
+  to { transform: scaleY(2.1) scaleX(0.82); opacity: 1; }
+}
+
+@keyframes stretch-wobble {
+  from { transform: scaleY(2.1) scaleX(0.82) skewX(-4deg); }
+  to { transform: scaleY(2.5) scaleX(0.76) skewX(5deg); }
+}
+
+/* ---------- Stars ---------- */
+
+.ly-stars-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ly-stars-lines line {
+  stroke: color-mix(in srgb, var(--ly-text) 70%, transparent);
+  stroke-width: 0.06;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.2px;
+  animation: fade-in 500ms ease-out both;
+}
+.ly-stars-lines line.old { stroke: color-mix(in srgb, var(--ly-text) 25%, transparent); }
+
+.ly-star {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6vh;
+  font-family: var(--ly-font);
+  font-weight: var(--ly-weight);
+  font-size: calc(2.2vh * var(--ly-size, 1));
+  color: var(--ly-sec);
+  animation: fade-in 500ms ease-out both;
+}
+.ly-star.old { opacity: 0.35; }
+.ly-star.active {
+  color: var(--ly-text);
+  font-size: calc(3.4vh * var(--ly-size, 1));
+  text-shadow: 0 0 18px var(--ly-hi);
+}
+.ly-star.big.active { font-size: calc(6.5vh * var(--ly-size, 1)); }
+
+.ly-star-dot {
+  width: 0.9vh;
+  height: 0.9vh;
+  border-radius: 50%;
+  background: var(--ly-hi);
+  box-shadow: 0 0 10px var(--ly-hi);
+}
+
+.ly-star-reticle {
+  position: absolute;
+  top: 0.45vh;
+  left: 50%;
+  width: 4.5vh;
+  height: 4.5vh;
+  border: 1.5px solid var(--ly-text);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: reticle 700ms ease-out both;
+}
+.ly-star-reticle::before,
+.ly-star-reticle::after {
+  content: "";
+  position: absolute;
+  background: var(--ly-text);
+}
+.ly-star-reticle::before { left: 50%; top: -0.9vh; bottom: -0.9vh; width: 1.5px; transform: translateX(-50%); }
+.ly-star-reticle::after { top: 50%; left: -0.9vh; right: -0.9vh; height: 1.5px; transform: translateY(-50%); }
+
+@keyframes reticle {
+  from { transform: translate(-50%, -50%) scale(2.2) rotate(45deg); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* ---------- Chat ---------- */
+
+.ly-chat {
+  top: auto;
+  bottom: 30vh;
+  left: 50%;
+  right: auto;
+  width: min(30vw, 760px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9vh;
+}
+
+.ly-bubble {
+  align-self: flex-start;
+  max-width: 78%;
+  padding: 1vh 1.5vh;
+  border-radius: 2.2vh 2.2vh 2.2vh 0.6vh;
+  background: rgba(60, 60, 70, 0.78);
+  backdrop-filter: blur(16px);
+  font-family: Inter, var(--ly-font);
+  font-weight: 500;
+  font-size: calc(2.3vh * var(--ly-size, 1));
+  line-height: 1.25;
+  color: #fff;
+  opacity: 0.6;
+  animation: bubble-in 280ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.ly-bubble.mine {
+  align-self: flex-end;
+  border-radius: 2.2vh 2.2vh 0.6vh 2.2vh;
+  background: color-mix(in srgb, var(--ly-hi) 82%, #1a1a24);
+}
+.ly-bubble.now { opacity: 1; }
+.ly-bubble.typing { display: flex; gap: 0.6vh; opacity: 0.9; }
+.ly-bubble.typing i {
+  width: 0.8vh;
+  height: 0.8vh;
+  border-radius: 50%;
+  background: currentColor;
+  animation: typing 1s infinite ease-in-out;
+}
+.ly-bubble.typing i:nth-child(2) { animation-delay: 0.15s; }
+.ly-bubble.typing i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes bubble-in {
+  from { transform: scale(0.6) translateY(1vh); opacity: 0; }
+}
+@keyframes typing { 50% { transform: translateY(-0.5vh); opacity: 0.4; } }
+
+/* ---------- Icons ---------- */
+
+.ly-icons {
+  top: 38vh;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2vh;
+}
+
+.ly-icon-word {
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  font-family: var(--ly-font);
+  font-weight: 900;
+  font-size: calc(5.2vh * var(--ly-size, 1));
+  line-height: 1.05;
+  color: var(--ly-text);
+  animation: word-in 360ms ease-out both;
+}
+.ly-icon-word.active {
+  text-decoration: underline;
+  text-decoration-color: var(--ly-hi);
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.12em;
+}
+.ly-icon {
+  font-style: normal;
+  font-size: 0.8em;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  animation: icon-pop 420ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes icon-pop { from { transform: scale(0) rotate(-30deg); } }
+
+@keyframes fade-in { from { opacity: 0; } }
+
+/* ---------- Roll ---------- */
+/* One big word at a time on a centred column. Slot centres, as shares of screen
+   height: previous 46%, current 58%, next 71%. Every word is drawn at full size
+   (15vh) and placed by transform only, so moving between slots never re-lays
+   out text: the small slots are scale(0.37), about 5.5vh. All four slot
+   transforms use the same list of functions so they interpolate piece by piece. */
+
+.ly-roll {
+  --roll-d: 280ms;
+  --roll-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --roll-top: color-mix(in srgb, var(--c1) 30%, #fff3d6);
+  --roll-bottom: color-mix(in srgb, var(--c1) 85%, #ffb347);
+}
+/* Fast words (under 160 ms apart) roll at half the time and skip the block. */
+.ly-roll.fast { --roll-d: 140ms; }
+
+.roll-word {
+  position: absolute;
+  left: 50%;
+  top: 58vh;
+  display: flex;
+  align-items: center;
+  gap: 0.15em;
+  font-family: Nunito, sans-serif;
+  font-weight: 900;
+  font-size: calc(15vh * var(--ly-size, 1));
+  line-height: 1.1;
+  white-space: nowrap;
+  transform-origin: 50% 50%;
+  transition:
+    transform var(--roll-d) var(--roll-ease),
+    opacity var(--roll-d) var(--roll-ease),
+    filter var(--roll-d) var(--roll-ease);
+}
+
+.roll-current {
+  transform: translate(-50%, -50%) translateY(0) scale(1) translateY(0);
+  /* Rising from the next slot: a little blur that clears as it lands. */
+  animation: roll-rise var(--roll-d) var(--roll-ease);
+}
+.roll-prev {
+  transform: translate(-50%, -50%) translateY(-12vh) scale(0.37) translateY(0);
+  opacity: 0.9;
+}
+/* Leaving: up by 60% of its own height, fading out. 4px of blur as seen on
+   screen: the filter is applied before the 0.37 scale, so it's 4px / 0.37. */
+.roll-leaving {
+  transform: translate(-50%, -50%) translateY(-12vh) scale(0.37) translateY(-60%);
+  opacity: 0;
+  filter: blur(10.8px);
+}
+/* Below, cut off so only its top part shows. */
+.roll-next {
+  transform: translate(-50%, -50%) translateY(13vh) scale(0.37) translateY(0);
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  animation: roll-appear 120ms ease-out;
+}
+
+/* Instrumental gap: the last word dims until the next block shows up. */
+.ly-roll.idle .roll-current {
+  opacity: 0.35;
+  transition-duration: 600ms;
+}
+
+.roll-core { position: relative; display: block; }
+
+/* Warm gradient from the album colour, clipped to the letters, with a soft glow. */
+.roll-glyphs {
+  display: block;
+  padding: 0 0.04em;
+  background: linear-gradient(180deg, var(--roll-top), var(--roll-bottom));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0 1.6vh color-mix(in srgb, var(--c1) 45%, transparent));
+}
+
+/* The highlight block: a solid colour slab with the letters knocked out (drawn in
+   the dark background colour). Shown in the next slot; wiped away left to right
+   in the first 120 ms after the word lands. */
+.roll-block {
+  position: absolute;
+  inset: 0 -0.12em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.12em;
+  background: color-mix(in srgb, var(--c1) 90%, #ffb347);
+  color: #0d0d10;
+  opacity: 0;
+}
+.roll-next .roll-block { opacity: 1; }
+.roll-current .roll-block {
+  opacity: 1;
+  animation: roll-wipe 120ms linear forwards;
+}
+.noblock .roll-block { display: none; }
+
+/* Word pictures: solid, in the lyric colour, popping in 60 ms after the word lands. */
+.roll-icon {
+  flex: none;
+  width: 0.75em;
+  height: 0.75em;
+  fill: color-mix(in srgb, var(--roll-top) 40%, var(--roll-bottom));
+  filter: drop-shadow(0 0 1.6vh color-mix(in srgb, var(--c1) 45%, transparent));
+}
+.roll-next .roll-icon { transform: scale(0); }
+.roll-current .roll-icon { animation: roll-pop 200ms ease-out calc(var(--roll-d) + 60ms) both; }
+.ly-roll.fast .roll-current .roll-icon { animation-duration: 100ms; }
+
+@keyframes roll-rise {
+  from { filter: blur(3px); }
+  to { filter: blur(0); }
+}
+@keyframes roll-wipe {
+  from { clip-path: inset(0 0 0 0); }
+  to { clip-path: inset(0 0 0 100%); }
+}
+@keyframes roll-pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@keyframes roll-appear { from { opacity: 0; } }
+@keyframes roll-fade-out { to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Roll handles reduced motion itself (below): it keeps its short cross-fade. */
+  .lyrics-stage :not(.roll-word) { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
+
+  /* Roll without motion: no blur, no block, no rolling; each slot cross-fades in 120 ms. */
+  .roll-word,
+  .roll-current,
+  .roll-next {
+    transition: opacity 120ms linear;
+    filter: none;
+    animation: roll-appear 120ms linear both;
+  }
+  .roll-word.out { animation: roll-fade-out 120ms linear forwards; }
+  .roll-block { display: none; }
+  .roll-icon,
+  .roll-next .roll-icon,
+  .roll-current .roll-icon { animation: none; transform: none; }
+}

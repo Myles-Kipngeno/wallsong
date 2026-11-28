@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- YouTube embeds need to know which site they're on (prevents Error 153). -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <link rel="preconnect" href="https://www.youtube.com" />
+    <link rel="preconnect" href="https://i.ytimg.com" />
+    <link rel="preconnect" href="https://music.youtube.com" />
+    <link rel="preconnect" href="https://lrclib.net" />
     <title>Wallsong</title>
   </head>
   <body>

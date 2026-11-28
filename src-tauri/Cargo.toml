@@ -1,6 +1,6 @@
 [package]
 name = "wallsong"
-version = "0.1.0"
+version = "0.5.2"
 description = "Wallsong: your desktop, on the beat"
 edition = "2021"
 
@@ -11,10 +11,15 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+[features]
+default = []
+devtools = ["tauri/devtools"]
+
 [dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tauri-plugin-global-shortcut = "2"
 reqwest = { version = "0.12", default-features = false, features = ["json", "native-tls"] }
 urlencoding = "2"
 base64 = "0.22"
@@ -22,6 +27,8 @@ log = "0.4"
 
 [target.'cfg(windows)'.dependencies]
 cpal = "0.15"
+# Encodes desktop icons for the Dock (already in the tree through Tauri).
+png = "0.18"
 windows = { version = "0.61", features = [
   "Foundation",
   "Foundation_Collections",
@@ -30,6 +37,21 @@ windows = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",
   "Win32_System_WinRT",
+  "Win32_System_Power",
+  "Win32_UI_Shell",
+  "Win32_UI_Shell_Common",
+  "Win32_Graphics_Gdi",
+  "Win32_Storage_FileSystem",
+  "Win32_UI_Controls",
+  "Win32_System_Com",
+  # The desktop icon guard (a second wallsong.exe that waits for the first to end).
+  "Win32_System_Threading",
+  # Ctrl+C and closing the terminal give the desktop icons back.
+  "Win32_System_Console",
+  # Explorer starts the icon guard (IShellDispatch2::ShellExecute), so it isn't
+  # Wallsong's child and survives `tauri dev` rebuilds and End task.
+  "Win32_System_Ole",
+  "Win32_System_Variant",
 ] }
 
 [profile.release]

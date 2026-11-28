@@ -1,0 +1,460 @@
+/* The Dock: a glass bar of tiles centred along the bottom of the screen, 1.2vh
+   above the taskbar (Dock.tsx works out where that is). 8vh tall, tiles 6.4vh. */
+
+.dk-wrap {
+  --dk-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.dk {
+  display: flex;
+  align-items: center;
+  height: 8vh;
+  min-height: 64px;
+  max-width: 92vw;
+  padding: 0.8vh;
+  border-radius: 2.2vh;
+  background: rgba(14, 14, 20, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1.4vh min(24px, 4vh) rgba(0, 0, 0, 0.5);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+/* ---------- chevron ---------- */
+
+.dk-chev {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 3vh;
+  height: 6.4vh;
+  border-radius: 1vh;
+  color: rgba(255, 255, 255, 0.7);
+}
+.overlay .dk-chev:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.dk-chev .icon { transition: transform 320ms var(--dk-ease); }
+/* Open: "^" (fold down). Folded: pointing down... to the song it's folded to. */
+.dk:not(.folded) .dk-chev .icon { transform: rotate(180deg); }
+
+/* ---------- tiles ---------- */
+
+.dk-tile {
+  flex: none;
+  position: relative;
+  width: var(--w);
+  height: 6.4vh;
+  margin-left: 0.8vh;
+  border-radius: 1.6vh;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background 140ms ease,
+    transform 140ms ease,
+    width 320ms var(--dk-ease),
+    margin 320ms var(--dk-ease),
+    opacity 320ms var(--dk-ease);
+}
+.dk-tile:hover,
+.dk-tile:focus-visible { transform: translateY(-0.4vh); background: rgba(255, 255, 255, 0.1); }
+
+/* Content keeps its full width while the tile folds, so nothing re-wraps mid-animation. */
+.dk-tile-body {
+  width: var(--w);
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+/* Folded away: everything but the song shrinks out of the Dock. */
+.dk-tile.away {
+  width: 0;
+  margin-left: 0;
+  opacity: 0;
+  transform: scale(0.9);
+  overflow: hidden;
+  pointer-events: none;
+  transition-duration: 140ms, 320ms, 320ms, 320ms, 320ms;
+}
+
+/* ---------- edit mode ---------- */
+
+.dk.editing { overflow: visible; }
+.dk.editing .dk-tile { cursor: grab; }
+.dk.editing .dk-tile-body { pointer-events: none; }
+.dk-tile.dragging { opacity: 0.4; }
+.dk-tile.drop-before::before {
+  content: "";
+  position: absolute;
+  left: -0.55vh;
+  top: 12%;
+  bottom: 12%;
+  width: 3px;
+  border-radius: 2px;
+  background: #fff;
+}
+.dk-remove {
+  position: absolute;
+  top: -0.7vh;
+  right: -0.7vh;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.2vh;
+  height: 2.2vh;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 50%;
+  background: #ff4d5e !important;
+  color: #fff;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0.3vh 0.8vh rgba(0, 0, 0, 0.45);
+}
+.dk-add {
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.35) !important;
+  color: rgba(255, 255, 255, 0.85);
+}
+.dk-done {
+  flex: none;
+  height: 4vh;
+  margin: 0 0.4vh 0 1.2vh;
+  padding: 0 1.8vh !important;
+  border-radius: 999px;
+  background: #fff !important;
+  color: #111119 !important;
+  font-weight: 700;
+}
+
+.dk-picker {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 1vh);
+  z-index: 3;
+  min-width: 250px;
+  padding: 0.8vh;
+  border-radius: 1.4vh;
+  background: rgba(16, 16, 23, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1vh min(24px, 4vh) rgba(0, 0, 0, 0.5);
+  animation: pop-in 160ms ease-out;
+}
+.dk-picker hr { border: 0; height: 1px; margin: 0.5vh 0.4vh; background: rgba(255, 255, 255, 0.1); }
+
+/* ---------- the icon row, over the Dock's right end ---------- */
+
+.dk-row {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.6vh);
+  width: clamp(420px, 30vw, 900px);
+}
+.dk-row .dock-row { margin-bottom: 0; }
+
+/* ---------- Clock ---------- */
+
+.dk-clock-face { display: block; width: 5.6vh; height: 5.6vh; }
+.dk-clock-face .dial { fill: rgba(255, 255, 255, 0.05); stroke: rgba(255, 255, 255, 0.16); stroke-width: 1.5; }
+.dk-clock-face .tick { stroke: rgba(255, 255, 255, 0.5); stroke-width: 2; stroke-linecap: round; }
+.dk-clock-face .tick.major { stroke: #fff; stroke-width: 3; }
+.dk-clock-face .hand { stroke-linecap: round; }
+.dk-clock-face .hour { stroke: #fff; stroke-width: 5.5; }
+.dk-clock-face .minute { stroke: #fff; stroke-width: 3.6; }
+.dk-clock-face .second { stroke: var(--c1, #ff3d8b); stroke-width: 1.6; }
+.dk-clock-face .pin { fill: var(--c1, #ff3d8b); }
+
+.dk-clock-digital {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-items: center;
+  column-gap: 0.35vh;
+  row-gap: 0.2vh;
+}
+.dk-clock-digital .flip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.2vh;
+  height: 4.1vh;
+  border-radius: 0.6vh;
+  background: linear-gradient(180deg, #2c2c36 0 50%, #23232b 50% 100%);
+  font-weight: 700;
+  font-size: 2.3vh;
+  font-variant-numeric: tabular-nums;
+  perspective: 20vh;
+  animation: dk-flip 420ms var(--dk-ease);
+}
+.dk-clock-digital .flip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.55);
+}
+.dk-clock-digital small { grid-column: 1 / -1; font-size: 0.95vh; font-weight: 700; letter-spacing: 0.1em; color: rgba(255, 255, 255, 0.6); }
+@keyframes dk-flip { from { transform: rotateX(-80deg); opacity: 0.3; } }
+
+/* ---------- Now Playing ---------- */
+
+/* Three columns: the art (5.2vh square, centred), the text, and the buttons (or Search).
+   Nothing may spill out of the 6.4vh tile. */
+.dk-np {
+  display: grid;
+  grid-template-columns: 5.2vh minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1vh;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.6vh;
+  overflow: hidden;
+  text-align: left;
+}
+.dk-np-art { display: block; width: 5.2vh !important; height: 5.2vh !important; border-radius: 1vh; }
+.dk-np-open { display: block; min-width: 0; max-width: 100%; border-radius: 1vh; text-align: left; }
+.overlay .dk-np-open:hover .dk-np-art { filter: brightness(1.15); }
+.overlay .dk-np-open:hover .dk-np-title { text-decoration: underline; text-underline-offset: 0.25vh; }
+.dk-np-text { min-width: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 0.15vh; }
+.dk-np-title { display: block; font-weight: 700; font-size: 1.45vh; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dk-np-sub { font-size: 1.2vh; line-height: 1.25; color: rgba(255, 255, 255, 0.58); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dk-np-time { display: flex; align-items: center; gap: 0.6vh; font-size: 1vh; color: rgba(255, 255, 255, 0.58); font-variant-numeric: tabular-nums; }
+.dk-np-line { position: relative; flex: 1; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, 0.18); }
+.dk-np-line b { display: block; height: 100%; border-radius: inherit; background: #fff; transition: width 250ms linear; }
+/* An easier target than 2px: the line catches clicks a little above and below itself. */
+.dk-np-line.seekable { cursor: pointer; }
+.dk-np-line.seekable::before { content: ""; position: absolute; inset: -0.7vh 0; }
+.overlay .dk-np-line.seekable:hover { height: 4px; }
+.dk-np-grid { display: grid; grid-template-columns: repeat(2, 2.7vh); gap: 0.3vh; }
+.dk-np-grid button { display: grid; place-items: center; width: 2.7vh; height: 2.7vh; min-width: 22px; min-height: 22px; border-radius: 50%; color: rgba(255, 255, 255, 0.85); }
+.dk-np-grid button.main { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.overlay .dk-np-grid button:hover:not(:disabled),
+.overlay .dk-np-search:hover { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.dk-np-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5vh;
+  height: 2.8vh;
+  min-height: 24px;
+  padding: 0 1.1vh;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.15vh;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---------- Controls: every player button, two rows ---------- */
+
+.dk-ctl { display: flex; flex-direction: column; justify-content: center; gap: 0.2vh; width: 100%; height: 100%; padding: 0.3vh 0.8vh; }
+.dk-ctl-row { display: flex; align-items: center; justify-content: space-between; height: 2.8vh; }
+.dk-ctl button {
+  display: grid;
+  place-items: center;
+  width: 2.5vh;
+  height: 2.5vh;
+  min-width: 20px;
+  min-height: 20px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.85);
+  transition: background 120ms ease, color 120ms ease;
+}
+.overlay .dk-ctl button:hover:not(:disabled),
+.dk-ctl button.open { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.dk-ctl button.on { color: var(--accent-2); }
+/* Play/pause: larger, a white circle, like the player card's. */
+.dk-ctl button.main { width: 2.8vh; height: 2.8vh; min-width: 22px; min-height: 22px; background: rgba(255, 255, 255, 0.94); color: #111119; }
+.overlay .dk-ctl button.main:hover:not(:disabled) { background: #fff; color: #111119; }
+/* The source button keeps the bar's colours: pink for Wallsong, green when following an app. */
+.dk-ctl .src-btn { color: var(--accent); }
+.dk-ctl .src-btn.mode-follow { color: #5fe08a; }
+.dk-ctl .src-btn.mode-idle { color: rgba(255, 255, 255, 0.5); }
+
+.marquee { display: block; overflow: hidden; white-space: nowrap; }
+.marquee-text { display: inline-block; white-space: nowrap; }
+.marquee-text.run { animation: dk-marquee var(--dur) ease-in-out 1; }
+@keyframes dk-marquee {
+  0%, 15% { transform: translateX(0); }
+  45%, 60% { transform: translateX(var(--shift)); }
+  90%, 100% { transform: translateX(0); }
+}
+
+/* ---------- Weather ---------- */
+
+.dk-wx { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 100%; padding: 0 1.2vh; }
+.dk-wx-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
+.dk-wx-city { font-size: 1.15vh; color: rgba(255, 255, 255, 0.65); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dk-wx-temp { font-size: 2.8vh; font-weight: 300; }
+.dk-wx-range { font-size: 1vh; color: rgba(255, 255, 255, 0.58); white-space: pre; }
+.wx-glyph { flex: none; width: 4.4vh; height: 4.4vh; }
+.dk-wx.unset { justify-content: center; gap: 0.8vh; font-size: 1.25vh; color: rgba(255, 255, 255, 0.75); }
+.dk-wx.unset .wx-glyph { width: 2.8vh; height: 2.8vh; opacity: 0.8; }
+
+/* ---------- Calendar ---------- */
+
+.dk-cal { display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
+.dk-cal-day { font-size: 1.05vh; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #ff5a5f; }
+.dk-cal-num { font-size: 2.9vh; font-weight: 700; }
+.dk-cal-month { font-size: 1.05vh; color: rgba(255, 255, 255, 0.6); }
+
+/* ---------- Battery ---------- */
+
+.dk-bat { position: relative; display: grid; place-items: center; width: 5vh; height: 5vh; }
+/* The two rings (track, lit) fill the tile; the glyph in the text sits beside the digits. */
+.dk-bat > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dk-bat .track { fill: none; stroke: rgba(255, 255, 255, 0.14); stroke-width: 9; }
+.dk-bat .fill { fill: none; stroke: currentColor; stroke-width: 9; stroke-linecap: round; }
+.dk-bat.good { color: #4cd964; }
+.dk-bat.plugged { color: #ffffff; }
+.dk-bat.low { color: #ffb020; }
+.dk-bat.critical { color: #ff4d4d; }
+.dk-bat-text { position: relative; display: flex; align-items: center; gap: 0.1vh; font-size: 1.25vh; font-weight: 700; color: #fff; }
+.dk-bat-text .glyph { width: 1.2vh; height: 1.2vh; min-width: 10px; min-height: 10px; fill: currentColor; }
+.dk-bat-text .bolt { color: currentColor; }
+/* Opacity only, on the lit ring's own layer: the compositor runs it, nothing repaints. */
+.dk-bat .lit.blink { will-change: opacity; }
+.dk-bat .lit.blink { animation: dk-bat-blink 4s linear infinite; }
+/* One quick blink at the end of every 4 s. */
+@keyframes dk-bat-blink { 0%, 86%, 100% { opacity: 1; } 92% { opacity: 0.15; } }
+
+/* ---------- Desktop ---------- */
+
+.dk-desk { display: grid; grid-template-columns: repeat(3, 1.55vh); grid-template-rows: repeat(3, 1.55vh); gap: 0.25vh; }
+.dk-desk img { width: 100%; height: 100%; object-fit: contain; }
+.dk-desk i { border-radius: 0.3vh; background: rgba(255, 255, 255, 0.08); }
+.dk-desk i.empty { background: rgba(255, 255, 255, 0.04); }
+
+/* ---------- Pins and the Recycle Bin ---------- */
+
+.dk-pin img { display: block; width: 4.4vh; height: 4.4vh; object-fit: contain; }
+.dk-pin-letter { display: grid; place-items: center; width: 4.2vh; height: 4.2vh; border-radius: 1vh; background: rgba(255, 255, 255, 0.14); font-weight: 700; font-size: 2vh; }
+
+.dk-bin svg { display: block; width: 4.2vh; height: 4.2vh; color: rgba(255, 255, 255, 0.85); }
+.dk-bin .lid,
+.dk-bin .body { fill: currentColor; opacity: 0.5; }
+.dk-bin.full .lid,
+.dk-bin.full .body { opacity: 1; }
+.dk-bin .paper { fill: #ffd27a; }
+
+/* ---------- Desktop panel ---------- */
+
+.dk-panel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 1vh);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: max(100%, 60vw);
+  max-width: 92vw;
+  max-height: 40vh;
+  border-radius: 2vh;
+  background: rgba(14, 14, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1.4vh min(24px, 4vh) rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+  animation: dk-panel-in 200ms var(--dk-ease);
+}
+@keyframes dk-panel-in { from { opacity: 0; transform: translateX(-50%) translateY(1vh); } }
+
+.dk-panel-head { display: flex; align-items: center; gap: 1vh; padding: 1.2vh 1.4vh 0.8vh; }
+.crumbs { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.4vh; overflow: hidden; white-space: nowrap; font-weight: 600; }
+.crumbs span { display: inline-flex; align-items: center; gap: 0.4vh; }
+.crumbs i { font-style: normal; color: rgba(255, 255, 255, 0.4); }
+.crumbs button { padding: 0.3vh 0.6vh; border-radius: 0.6vh; color: rgba(255, 255, 255, 0.65); }
+.crumbs button.here { color: #fff; }
+.overlay .crumbs button:hover { background: rgba(255, 255, 255, 0.08); }
+.dk-panel-hint { color: #ffd27a; font-size: 0.92em; }
+.dk-panel-search { display: flex; align-items: center; gap: 0.7vh; width: 22vh; min-width: 180px; height: 3.4vh; min-height: 30px; padding: 0 1vh; border-radius: 1vh; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); cursor: text; }
+.dk-panel-search input { flex: 1; min-width: 0; background: none; border: 0; outline: none; font: inherit; color: #fff; user-select: text; }
+
+.dk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 12vh);
+  justify-content: start;
+  gap: 0.4vh;
+  padding: 0.4vh 1vh 1.4vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+.dk-item { display: flex; flex-direction: column; align-items: center; gap: 0.6vh; width: 12vh; padding: 1vh 0.5vh; border-radius: 1.2vh; }
+.overlay .dk-item:hover { background: rgba(255, 255, 255, 0.08); }
+.dk-panel.pin-mode .dk-item:hover { background: rgba(255, 210, 122, 0.16); }
+.dk-item img,
+.dk-item-blank { width: 6vh; height: 6vh; object-fit: contain; }
+.dk-item-blank { display: block; border-radius: 1vh; background: rgba(255, 255, 255, 0.08); }
+.dk-item span {
+  max-width: 100%;
+  font-size: 1.3vh;
+  line-height: 1.25;
+  text-align: center;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.dk-item.pinned span::after { content: " •"; color: #ffd27a; }
+.dk-item.skeleton i { display: block; width: 6vh; height: 6vh; border-radius: 1vh; background: rgba(255, 255, 255, 0.08); }
+.dk-item.skeleton b { display: block; width: 70%; height: 1.2vh; border-radius: 0.6vh; background: rgba(255, 255, 255, 0.06); }
+.dk-grid .empty { grid-column: 1 / -1; }
+
+/* ---------- Menus (also used by the player card) ---------- */
+
+.context-menu {
+  position: fixed;
+  z-index: 20;
+  min-width: 230px;
+  padding: 0.6vh;
+  border-radius: 1.4vh;
+  background: rgba(16, 16, 23, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1vh min(24px, 4vh) rgba(0, 0, 0, 0.55);
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  font-size: clamp(12px, 1.25vh, 17px);
+  color: #fff;
+  animation: pop-in 140ms ease-out;
+}
+.context-menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2vh;
+  width: 100%;
+  padding: 0.75vh 1.1vh;
+  border: 0;
+  border-radius: 0.8vh;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.context-menu button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.09); }
+.context-menu button:disabled { opacity: 0.4; cursor: default; }
+.context-menu button.danger { color: #ff8a8a; }
+.context-menu hr { border: 0; height: 1px; margin: 0.5vh 0.4vh; background: rgba(255, 255, 255, 0.1); }
+
+.floating-pop { position: fixed; z-index: 20; }
+.floating-pop .popover { position: static; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dk-tile,
+  .dk-chev .icon { transition-duration: 1ms !important; }
+  .marquee-text.run,
+  .dk-clock-digital .flip,
+  .dk-bat .lit.blink { animation: none; }
+}

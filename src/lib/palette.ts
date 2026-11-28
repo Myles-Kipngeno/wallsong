@@ -1,5 +1,61 @@
+import { useEffect, useState } from "react";
+
 /** Wallsong's own colours, used when a song has no artwork. */
 export const BRAND_PALETTE = ["#FF3D8B", "#FF9A3D", "#B8FF4D"];
+
+/** Album colours, read from the artwork (the wallpaper, the Dock and the player card all use them). */
+export function usePalette(artwork: string | null | undefined): string[] {
+  const [palette, setPalette] = useState<string[]>(BRAND_PALETTE);
+  useEffect(() => {
+    if (!artwork) return setPalette(BRAND_PALETTE);
+    let live = true;
+    paletteFromImage(artwork)
+      .then((p) => live && setPalette(p))
+      .catch(() => {
+        /* https artwork can't be read by a canvas; the data URL version follows shortly */
+      });
+    return () => {
+      live = false;
+    };
+  }, [artwork]);
+  return palette;
+}
+
+/** Reads #rrggbb, rgb(...) and hsl(...) colours (album colours arrive as hsl) as 0..1 RGB. */
+export function colorToRgb(color: string): [number, number, number] | null {
+  const m = color.trim().match(/^#?([0-9a-f]{6})$/i);
+  if (m) {
+    const n = parseInt(m[1], 16);
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+  }
+  const rgb = color.match(/rgba?\(([^)]+)\)/);
+  if (rgb) {
+    const [r, g, b] = rgb[1].split(/[\s,/]+/).filter(Boolean).map((v) => parseFloat(v) / 255);
+    return [r, g, b];
+  }
+  const hsl = color.match(/hsla?\(\s*([\d.]+)(?:deg)?[\s,]+([\d.]+)%[\s,]+([\d.]+)%/i);
+  if (hsl) {
+    const h = parseFloat(hsl[1]);
+    const s = parseFloat(hsl[2]) / 100;
+    const l = parseFloat(hsl[3]) / 100;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    };
+    return [f(0), f(8), f(4)];
+  }
+  return null;
+}
+
+/** Relative luminance (0 black .. 1 white) of a colour mixed `share` with another, as CSS color-mix does. */
+export function mixedLuminance(color: string, share: number, other: string): number {
+  const a = colorToRgb(color) ?? [1, 0.24, 0.55];
+  const b = colorToRgb(other) ?? [0, 0, 0];
+  const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const [r, g, bl] = a.map((v, i) => v * share + b[i] * (1 - share));
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(bl);
+}
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   r /= 255;
